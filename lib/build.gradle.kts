@@ -1,5 +1,6 @@
 plugins {
     id("java")
+    `maven-publish`
 }
 
 group = "com.hseungho.util"
@@ -16,4 +17,15 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "com.hseungho.util"
+            artifactId = "java-sql-generator"
+            version = "0.0.1"
+            from(components["java"])
+        }
+    }
 }
