@@ -1,4 +1,4 @@
-package com.navi.util.sql;
+package com.hseungho.util.sql;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -7,11 +7,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 
-import static com.navi.util.sql.SQLGenUtils.isNan;
-import static com.navi.util.sql.SQLGenUtils.isNotBlank;
-import static com.navi.util.sql.SQLGenValidator.requireNotBlank;
-import static com.navi.util.sql.SQLGenValidator.requireNotEmpty;
-import static com.navi.util.sql.SQLGenValidator.requireNotNull;
+import static com.hseungho.util.sql.SQLGenUtils.isNan;
+import static com.hseungho.util.sql.SQLGenUtils.isNotBlank;
+import static com.hseungho.util.sql.SQLGenValidator.requireNotBlank;
+import static com.hseungho.util.sql.SQLGenValidator.requireNotEmpty;
+import static com.hseungho.util.sql.SQLGenValidator.requireNotNull;
 
 public class SQLGen {
 

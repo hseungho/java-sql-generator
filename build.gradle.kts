@@ -2,7 +2,7 @@ plugins {
     id("java")
 }
 
-group = "com.navi.util"
+group = "com.hseungho.util"
 version = "0.0.1"
 
 repositories {

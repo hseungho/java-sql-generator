@@ -1,4 +1,4 @@
-package com.navi.util.sql;
+package com.hseungho.util.sql;
 
 public interface SQLResult {
 

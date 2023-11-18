@@ -1,4 +1,4 @@
-package com.navi.util.sql;
+package com.hseungho.util.sql;
 
 import java.util.ArrayList;
 import java.util.List;
