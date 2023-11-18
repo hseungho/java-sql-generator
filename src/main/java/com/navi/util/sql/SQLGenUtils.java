@@ -12,14 +12,6 @@ class SQLGenUtils {
         return !isNullOrBlank(value);
     }
 
-    static String[] upperCases(String[] values) {
-        String[] upperCases = new String[values.length];
-        for (int i = 0; i < values.length; i++) {
-            upperCases[i] = values[i].toUpperCase();
-        }
-        return upperCases.clone();
-    }
-
     static boolean isNan(Object obj) {
         if (obj instanceof Number) {
             double value = ((Number) obj).doubleValue();

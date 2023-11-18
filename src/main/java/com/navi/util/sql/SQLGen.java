@@ -7,12 +7,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.StringJoiner;
 
+import static com.navi.util.sql.SQLGenUtils.isNan;
+import static com.navi.util.sql.SQLGenUtils.isNotBlank;
 import static com.navi.util.sql.SQLGenValidator.requireNotBlank;
 import static com.navi.util.sql.SQLGenValidator.requireNotEmpty;
 import static com.navi.util.sql.SQLGenValidator.requireNotNull;
-import static com.navi.util.sql.SQLGenUtils.isNan;
-import static com.navi.util.sql.SQLGenUtils.isNotBlank;
-import static com.navi.util.sql.SQLGenUtils.upperCases;
 
 public class SQLGen {
 
@@ -52,7 +51,6 @@ public class SQLGen {
                 this.schema = this.schema.toUpperCase();
             }
             this.table = this.table.toUpperCase();
-            this.properties = upperCases(this.properties);
         }
         return this;
     }
@@ -87,28 +85,59 @@ public class SQLGen {
     public SQLResult insert() {
         SQLResult result = new SimpleSQLResult();
 
-        String form = "insert into %s (%s) values (%s);";
-        String insert = this.isUpperCase ? form.toUpperCase() : form;
+        String insert = this.isUpperCase ?
+                "INSERT INTO %s (%s) VALUES (%s);" :
+                "insert into %s (%s) values (%s);";
         String tableValue = this.getTableName();
         String propertiesValue = String.join(", ", this.properties);
 
         this.models.forEach(model -> {
             StringJoiner modelValue = new StringJoiner(", ");
-            Arrays.stream(this.properties).forEach(_property -> {
-                try {
-                    String property = _property.toLowerCase();
-                    Field field = model.getClass().getDeclaredField(property);
-                    Object obj = field.get(model);
-                    String value = isNan(obj) ? "'" + obj + "'" : obj.toString();
-                    modelValue.add(value);
-                } catch (NoSuchFieldException | IllegalAccessException e) {
-                    throw new SQLGenException(e);
-                }
+            Arrays.stream(this.properties).forEach(property -> {
+                String value = this.getAttrValueAsString(model, property);
+                modelValue.add(value);
             });
             result.addResult(String.format(insert, tableValue, propertiesValue, modelValue));
         });
 
         return result;
+    }
+
+    public SQLResult updateBy(String by, String... targetProperties) {
+        SQLResult result = new SimpleSQLResult();
+
+        String update = this.isUpperCase ?
+                "UPDATE %s SET %s WHERE %s;" :
+                "update %s set %s where %s;";
+        String tableValue = this.getTableName();
+
+        this.models.forEach(model -> {
+            String setForm = "%s = %s";
+            StringJoiner setValue = new StringJoiner(", ");
+
+            Arrays.stream(targetProperties).forEach(property -> {
+                String value = this.getAttrValueAsString(model, property);
+                setValue.add(String.format(setForm, property, value));
+            });
+
+            String conditionFrom = "%s = %s";
+            String value = this.getAttrValueAsString(model, by);
+            String condition = String.format(conditionFrom, by, value);
+
+            result.addResult(String.format(update, tableValue, setValue, condition));
+        });
+
+        return result;
+    }
+
+    private <T> String getAttrValueAsString(T clazz, String attrName) {
+        try {
+            Field field = clazz.getClass().getDeclaredField(attrName);
+            Object obj = field.get(clazz);
+            return isNan(obj) ? "'" + obj + "'" : obj.toString();
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new SQLGenException(e);
+        }
     }
 
     public static SQLGenBuilder builder() {

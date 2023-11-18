@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SQLGenTest {
 
     @Test
-    void build_succeed() {
+    void insert_succeed() {
         // given
         var size = 10;
         var models = givenModels(size);
@@ -28,7 +28,23 @@ class SQLGenTest {
         SQLResult result = generator.insert();
         // then
         assertEquals(size, result.size());
-        result.print();
+    }
+
+    @Test
+    void updateById_succeed() {
+        // given
+        var size = 10;
+        var models = givenModels(size);
+        SQLGen generator = SQLGen.builder()
+                .withTable("model")
+                .withProperties("id", "name", "x", "y", "z")
+                .withModels(models)
+                .enableUpperCase()
+                .build();
+        // when
+        SQLResult result = generator.updateBy("id", "name", "z");
+        // then
+        assertEquals(size, result.size());
     }
 
     @Test
