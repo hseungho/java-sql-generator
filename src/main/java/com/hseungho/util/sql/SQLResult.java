@@ -8,4 +8,6 @@ public interface SQLResult {
 
     void print();
 
+    boolean createFile(String path);
+
 }
