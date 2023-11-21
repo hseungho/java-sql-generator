@@ -20,13 +20,15 @@ class SQLGenTest {
         SQLGen generator = SQLGen.builder()
                 .withSchema("test")
                 .withTable("model")
-                .withProperties("id", "name", "x", "y", "z")
+                .withProperties("id", "name", "x", "y", "z", "camelCase")
                 .withModels(models)
                 .enableUpperCase()
+                .enableSnakeCase()
                 .build();
         // when
         SQLResult result = generator.insert();
         // then
+        result.print();
         assertEquals(size, result.size());
     }
 
@@ -37,12 +39,13 @@ class SQLGenTest {
         var models = givenModels(size);
         SQLGen generator = SQLGen.builder()
                 .withTable("model")
-                .withProperties("id", "name", "x", "y", "z")
+                .withProperties("id", "name", "x", "y", "z", "camelCase")
                 .withModels(models)
                 .enableUpperCase()
+                .enableSnakeCase()
                 .build();
         // when
-        SQLResult result = generator.updateBy("id", "name", "z");
+        SQLResult result = generator.updateBy("id", "name", "z", "camelCase");
         // then
         assertEquals(size, result.size());
     }
@@ -152,7 +155,7 @@ class SQLGenTest {
     private List<Model> givenModels(int size) {
         List<Model> result = new ArrayList<>();
         for (int i = 0; i < size; i++) {
-            result.add(new Model(i, "name_"+i, "x"+i, "y"+i, new Random().nextDouble()));
+            result.add(new Model(i, "name_"+i, "x"+i, "y"+i, new Random().nextDouble(), "camelCase"));
         }
         return result;
     }
@@ -163,18 +166,20 @@ class SQLGenTest {
         String x;
         String y;
         Double z;
+        String camelCase;
 
         Model(Integer id, String name) {
             this.id = id;
             this.name = name;
         }
 
-        public Model(int id, String name, String x, String y, Double z) {
+        public Model(int id, String name, String x, String y, Double z, String camelCase) {
             this.id = id;
             this.name = name;
             this.x = x;
             this.y = y;
             this.z = z;
+            this.camelCase = camelCase;
         }
 
         @Override

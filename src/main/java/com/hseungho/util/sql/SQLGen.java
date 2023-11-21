@@ -20,6 +20,7 @@ public class SQLGen {
     private String[] properties;
     private Collection<Object> models;
     private boolean isUpperCase = false;
+    private boolean enableSnakeCase = false;
 
     private SQLGen() {}
 
@@ -41,6 +42,10 @@ public class SQLGen {
 
     private void setUpperCase(boolean isUpperCase) {
         this.isUpperCase = isUpperCase;
+    }
+
+    private void setEnableSnakeCase(boolean enableSnakeCase) {
+        this.enableSnakeCase = enableSnakeCase;
     }
 
     private SQLGen build() {
@@ -74,7 +79,7 @@ public class SQLGen {
             List<String> fieldNames =
                     Arrays.stream(model.getClass().getDeclaredFields()).map(Field::getName).toList();
             Arrays.stream(this.properties).forEach( property -> {
-                if (!fieldNames.contains(property.toLowerCase())) {
+                if (!fieldNames.contains(property)) {
                     throw new SQLGenException(String.format("%s property is not defined inside the %s class.",
                             property, model.getClass().getSimpleName()));
                 }
@@ -89,12 +94,14 @@ public class SQLGen {
                 "INSERT INTO %s (%s) VALUES (%s);" :
                 "insert into %s (%s) values (%s);";
         String tableValue = this.getTableName();
-        String propertiesValue = String.join(", ", this.properties);
+        StringJoiner sj = new StringJoiner(", ");
+        Arrays.stream(this.properties).forEach(it -> sj.add(convertToSnakeCase(it)));
+        String propertiesValue = sj.toString();
 
         this.models.forEach(model -> {
             StringJoiner modelValue = new StringJoiner(", ");
-            Arrays.stream(this.properties).forEach(property -> {
-                String value = this.getAttrValueAsString(model, property);
+            Arrays.stream(this.properties).forEach(_property -> {
+                String value = this.getAttrValueAsString(model, _property);
                 modelValue.add(value);
             });
             result.addResult(String.format(insert, tableValue, propertiesValue, modelValue));
@@ -115,15 +122,16 @@ public class SQLGen {
             String setForm = "%s = %s";
             StringJoiner setValue = new StringJoiner(", ");
 
-            Arrays.stream(targetProperties).forEach(property -> {
-                String value = this.getAttrValueAsString(model, property);
+            Arrays.stream(targetProperties).forEach(_property -> {
+                String value = this.getAttrValueAsString(model, _property);
+                String property = convertToSnakeCase(_property);
                 setValue.add(String.format(setForm, property, value));
             });
 
             String conditionFrom = "%s = %s";
             String value = this.getAttrValueAsString(model, by);
-            String condition = String.format(conditionFrom, by, value);
-
+            String byValue = convertToSnakeCase(by);
+            String condition = String.format(conditionFrom, byValue, value);
             result.addResult(String.format(update, tableValue, setValue, condition));
         });
 
@@ -138,6 +146,25 @@ public class SQLGen {
         } catch (NoSuchFieldException | IllegalAccessException e) {
             throw new SQLGenException(e);
         }
+    }
+
+    private String convertToSnakeCase(String value) {
+        if (!this.enableSnakeCase) {
+            return value;
+        }
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < value.length(); i++) {
+            char currentChar = value.charAt(i);
+            if (Character.isUpperCase(currentChar)) {
+                if (i > 0) {
+                    result.append("_");
+                }
+                result.append(Character.toLowerCase(currentChar));
+            } else {
+                result.append(currentChar);
+            }
+        }
+        return result.toString();
     }
 
     public static SQLGenBuilder builder() {
@@ -178,6 +205,11 @@ public class SQLGen {
 
         public SQLGenBuilder enableUpperCase() {
             generator.setUpperCase(true);
+            return this;
+        }
+
+        public SQLGenBuilder enableSnakeCase() {
+            generator.setEnableSnakeCase(true);
             return this;
         }
     }
