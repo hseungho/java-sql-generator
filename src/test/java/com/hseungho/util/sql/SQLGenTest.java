@@ -161,8 +161,8 @@ class SQLGenTest {
     }
 
     private static class Model {
-        int id;
-        String name;
+        private final int id;
+        private final String name;
         String x;
         String y;
         Double z;

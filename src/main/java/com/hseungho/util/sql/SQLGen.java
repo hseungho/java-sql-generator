@@ -141,6 +141,7 @@ public class SQLGen {
     private <T> String getAttrValueAsString(T clazz, String attrName) {
         try {
             Field field = clazz.getClass().getDeclaredField(attrName);
+            field.setAccessible(true);
             Object obj = field.get(clazz);
             return isNan(obj) ? "'" + obj + "'" : obj.toString();
         } catch (NoSuchFieldException | IllegalAccessException e) {
